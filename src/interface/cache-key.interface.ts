@@ -1,5 +1,8 @@
-export type CacheKeyGenerator = (args: any[], target: Object, propertyKey: string, descriptor: PropertyDescriptor) => CacheKey;
-export type CacheKeyPrefixGenerator = (args: any[], target: Object, propertyKey: string, descriptor: PropertyDescriptor) => string;
-export type CacheKeySuffixGenerator = (args: any[], target: Object, propertyKey: string, descriptor: PropertyDescriptor) => string;
+export type CallContext = any;
+export type CallArgs = any[];
+
+export type CacheKeyGenerator = (args: CallArgs, target: Object, propertyKey: string, descriptor: PropertyDescriptor) => CacheKey;
+export type CacheKeyPrefixGenerator = (args: CallArgs, target: Object, propertyKey: string, descriptor: PropertyDescriptor) => string;
+export type CacheKeySuffixGenerator = (args: CallArgs, target: Object, propertyKey: string, descriptor: PropertyDescriptor) => string;
 
 export type CacheKey = string;

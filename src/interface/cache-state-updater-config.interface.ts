@@ -1,5 +1,4 @@
-import { UpdatedNotifier } from './update-notifier.interface';
-import { CacheKeyGenerator } from './cache-key.interface';
+import { UpdatedNotifier, UpdatedNotifierCacheKeyGenerator } from './update-notifier.interface';
 
 export interface CacheStateUpdaterConfig {
   /**
@@ -12,5 +11,5 @@ export interface CacheStateUpdaterConfig {
    * @description generates the cache key for the updated notifier
    * @default undefined
    */
-  cacheKeyGenerator?: CacheKeyGenerator;
+  cacheKeyGenerator?: UpdatedNotifierCacheKeyGenerator;
 }

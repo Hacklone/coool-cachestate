@@ -1,5 +1,5 @@
 import { CacheStateUpdaterConfig } from '../interface/cache-state-updater-config.interface';
-import { CacheKey } from '../interface/cache-key.interface';
+import { CacheKey, CallArgs } from '../interface/cache-key.interface';
 
 export function CacheStateUpdater(config: CacheStateUpdaterConfig) {
   return function(
@@ -13,10 +13,10 @@ export function CacheStateUpdater(config: CacheStateUpdaterConfig) {
       throw new Error('Use @CacheStateUpdater() decorator on functions!');
     }
 
-    descriptor.value = function(args: any[]) {
+    descriptor.value = function(...args: CallArgs) {
       const cacheKey: CacheKey | undefined = config.cacheKeyGenerator?.(args, target, propertyKey, descriptor);
 
-      const result = originalFunction(...args);
+      const result = originalFunction.apply(this, args);
 
       config.updatedNotifier.next(cacheKey);
 

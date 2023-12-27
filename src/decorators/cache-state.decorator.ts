@@ -2,13 +2,14 @@ import { LocalCacheDataStorage } from '../lib/local-cache-data.storage';
 import { LocalCacheManager } from '../lib/local-cache.manager';
 import { LocalTimeStampProvider } from '../lib/local-time-stamp.provider';
 import { CacheStateConfig } from '../interface/cache-state-config.interface';
-import { CacheKey } from '../interface/cache-key.interface';
+import { CacheKey, CallArgs } from '../interface/cache-key.interface';
+import { Observable } from 'rxjs';
 
 export function CacheState(config?: CacheStateConfig) {
   return function(
     target: Object,
     propertyKey: string,
-    descriptor: PropertyDescriptor,
+    descriptor: TypedPropertyDescriptor<(...args: CallArgs) => Observable<any>>,
   ): void {
     const originalFunction = descriptor.value;
 
@@ -29,10 +30,10 @@ export function CacheState(config?: CacheStateConfig) {
         });
     }
 
-    descriptor.value = function(args: any[]) {
+    descriptor.value = function(...args: CallArgs) {
       const cacheKey = _generateCacheKey(config, target, propertyKey, descriptor, args);
 
-      return cacheManager.getCache$(cacheKey, args);
+      return cacheManager.getCache$(cacheKey, args, this);
     };
   };
 
@@ -41,7 +42,7 @@ export function CacheState(config?: CacheStateConfig) {
     target: Object,
     propertyKey: string,
     descriptor: PropertyDescriptor,
-    args: any[],
+    args: CallArgs,
   ): string {
     if (config?.cacheKey?.generator) {
       return config.cacheKey.generator(args, target, propertyKey, descriptor);

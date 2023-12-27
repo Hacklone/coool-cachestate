@@ -1,11 +1,15 @@
 import { firstValueFrom, Observable, ReplaySubject } from 'rxjs';
 import { CacheManager } from '../interface/cache-manager.interface';
-import { CacheKey } from '../interface/cache-key.interface';
+import { CacheKey, CallArgs, CallContext } from '../interface/cache-key.interface';
 import { CacheDataStorage } from '../interface/cache-storage.interface';
 import { TimeStampProvider } from '../interface/timestamp.interface';
 
 interface Cache<T = any> {
-  readonly lastArgs: any[];
+  readonly key: CacheKey;
+
+  readonly lastArgs: CallArgs;
+
+  readonly context: CallContext;
 
   readonly subject: ReplaySubject<T>;
 }
@@ -15,16 +19,16 @@ export class LocalCacheManager<T = any> implements CacheManager {
 
   constructor(
     private _cacheDataStorage: CacheDataStorage,
-    private _dataProvider: (args: any[]) => Observable<T>,
+    private _dataProvider: (args: CallArgs) => Observable<T>,
     private _maxAgeInMS: number,
     private _timeStampProvider: TimeStampProvider,
   ) {
   }
 
-  public getCache$(key: CacheKey, args: any[]): Observable<T> {
-    const cache = this._getAndEnsureCache(key, args);
+  public getCache$(key: CacheKey, args: CallArgs, context: CallContext): Observable<T> {
+    const cache = this._getAndEnsureCache(key, args, context);
 
-    this._removeUnusedCachesAsync();
+    this._removeUnusedCachesAsync(key);
 
     // Do not wait for this Promise
     this._refreshCacheIfOutOfDataAsync(key, cache, args);
@@ -33,25 +37,29 @@ export class LocalCacheManager<T = any> implements CacheManager {
   }
 
   public async invalidateAndUpdateAsync(cacheKey: CacheKey | void) {
-    await this._removeUnusedCachesAsync();
+    await this._removeUnusedCachesAsync(undefined);
 
     const allToInvalidateAndUpdate: CacheKey[] = cacheKey ? [cacheKey] : Array.from(this._cacheStore.keys());
 
     await this._cacheDataStorage.removeAsync(allToInvalidateAndUpdate);
 
     await Promise.all(allToInvalidateAndUpdate.map(async _ => {
-      const cache = this._getAndEnsureCache(_);
+      const cache = this._cacheStore.get(_);
 
-      await this._refreshCacheData(_, cache, cache.lastArgs);
+      if (cache) {
+        await this._refreshCacheData(cache);
+      }
     }));
   }
 
-  private _getAndEnsureCache(key: CacheKey, args: any[] = []): Cache {
+  private _getAndEnsureCache(key: CacheKey, args: CallArgs, context: CallContext): Cache {
     let cache = this._cacheStore.get(key);
 
     if (!cache) {
       cache = {
+        key: key,
         lastArgs: args,
+        context: context,
         subject: new ReplaySubject<T>(1),
       };
 
@@ -61,37 +69,39 @@ export class LocalCacheManager<T = any> implements CacheManager {
     return cache;
   }
 
-  private async _refreshCacheIfOutOfDataAsync(key: CacheKey, cache: Cache, args: any[]) {
+  private async _refreshCacheIfOutOfDataAsync(key: CacheKey, cache: Cache, args: CallArgs) {
     const currentCacheData = await this._cacheDataStorage.getAsync(key);
     const cacheDataNeedsRefresh = !currentCacheData || (currentCacheData.createdAt + this._maxAgeInMS) < this._timeStampProvider.now();
 
     if (cacheDataNeedsRefresh) {
-      await this._refreshCacheData(key, cache, args);
+      await this._refreshCacheData(cache);
     }
   }
 
-  private async _refreshCacheData(key: CacheKey, cache: Cache, args: any[]) {
+  private async _refreshCacheData(cache: Cache) {
     try {
-      const data = await firstValueFrom(this._dataProvider(args));
+      const data = await firstValueFrom(this._dataProvider.apply(cache.context, <any>cache.lastArgs));
 
-      await this._cacheDataStorage.storeAsync(key, {
+      await this._cacheDataStorage.storeAsync(cache.key, {
         data: data,
         createdAt: this._timeStampProvider.now(),
       });
 
       cache.subject.next(data);
-    } catch {
-
+    } catch (e: any) {
+      cache.subject.error(e);
     }
   }
 
-  private async _removeUnusedCachesAsync() {
+  private async _removeUnusedCachesAsync(except: CacheKey | undefined) {
     const unusedCaches: CacheKey[] = Array.from(this._cacheStore.entries())
-      .filter(([key, cache]: [CacheKey, Cache]) => !cache.subject.observed)
+      .filter(([key, cache]: [CacheKey, Cache]) => key !== except && !cache.subject.observed)
       .map(([key, cache]: [CacheKey, Cache]) => key);
 
-    unusedCaches.forEach(_ => this._cacheStore.delete(_));
+    if (unusedCaches.length) {
+      unusedCaches.forEach(_ => this._cacheStore.delete(_));
 
-    await this._cacheDataStorage.removeAsync(unusedCaches);
+      await this._cacheDataStorage.removeAsync(unusedCaches);
+    }
   }
 }
