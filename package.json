@@ -1,0 +1,42 @@
+{
+  "name": "@coool/cachestate",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "npm run clean && npm run build:compile && npm run build:copyFiles",
+    "clean": "rm -rf dist",
+    "build:copyFiles": "cp ./{LICENSE,README.md,package.json,package-lock.json} ./dist/",
+    "build:compile": "npx tsc",
+    "watch": "npx tsc -w",
+    "release": "cd ./dist && npm publish --access=public && cd .."
+  },
+  "dependencies": {
+    "rxjs": "^7.8.1"
+  },
+  "description": "A simple to use aspect-oriented way to create caches that can act as a shared state between users.",
+  "devDependencies": {
+    "prettier": "^3.1.1",
+    "prettier-plugin-multiline-arrays": "^3.0.1",
+    "typescript": "^5.3.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Hacklone/coool-cachestate.git"
+  },
+  "keywords": [
+    "typescript",
+    "cache",
+    "state"
+  ],
+  "author": "Hacklone <toakak@gmail.com>",
+  "license": "MIT",
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/Hacklone/coool-cachestate/raw/master/LICENSE"
+    }
+  ],
+  "bugs": {
+    "url": "https://github.com/Hacklone/coool-cachestate/issues"
+  },
+  "homepage": "https://github.com/Hacklone/coool-cachestate/blob/master/README.md"
+}

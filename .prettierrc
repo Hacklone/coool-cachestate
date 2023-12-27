@@ -1,0 +1,10 @@
+{
+  "plugins": [
+    "./node_modules/prettier-plugin-multiline-arrays"
+  ],
+  "singleQuote": true,
+  "trailingComma": "all",
+  "bracketSpacing": true,
+  "printWidth": 120,
+  "multilineArraysWrapThreshold": 1
+}
