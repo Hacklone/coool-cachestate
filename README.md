@@ -42,6 +42,7 @@ export class MyConsumer {
   ) {
   }
   
+  // Gets the latest version of the cache, subscribes to any updates to the cache
   protected myItem$ = this._itemsService.getItemFromServer$('1');
 }
 ```
