@@ -1,7 +1,7 @@
 import { firstValueFrom, Observable, ReplaySubject } from 'rxjs';
 import { CacheManager } from '../interface/cache-manager.interface';
 import { CacheKey, CallArgs, CallContext } from '../interface/cache-key.interface';
-import { CacheDataStorage } from '../interface/cache-storage.interface';
+import { CacheDataStorage, isCacheOutdated } from '../interface/cache-storage.interface';
 import { TimeStampProvider } from '../interface/timestamp.interface';
 
 interface Cache<T = any> {
@@ -12,6 +12,8 @@ interface Cache<T = any> {
   readonly context: CallContext;
 
   readonly subject: ReplaySubject<T>;
+
+  initialized: boolean;
 }
 
 export class LocalCacheManager<T = any> implements CacheManager {
@@ -28,16 +30,16 @@ export class LocalCacheManager<T = any> implements CacheManager {
   public getCache$(key: CacheKey, args: CallArgs, context: CallContext): Observable<T> {
     const cache = this._getAndEnsureCache(key, args, context);
 
-    this._removeUnusedCachesAsync(key);
+    this._removeUnobservedCachesAsync(key);
 
     // Do not wait for this Promise
-    this._refreshCacheIfOutOfDataAsync(key, cache, args);
+    this._refreshCacheIfOutOfDataAsync(key, cache);
 
     return cache.subject.asObservable();
   }
 
   public async invalidateAndUpdateAsync(cacheKey: CacheKey | void) {
-    await this._removeUnusedCachesAsync(undefined);
+    await this._removeUnobservedCachesAsync(undefined);
 
     const allToInvalidateAndUpdate: CacheKey[] = cacheKey ? [cacheKey] : Array.from(this._cacheStore.keys());
 
@@ -61,6 +63,7 @@ export class LocalCacheManager<T = any> implements CacheManager {
         lastArgs: args,
         context: context,
         subject: new ReplaySubject<T>(1),
+        initialized: false,
       };
 
       this._cacheStore.set(key, cache);
@@ -69,12 +72,14 @@ export class LocalCacheManager<T = any> implements CacheManager {
     return cache;
   }
 
-  private async _refreshCacheIfOutOfDataAsync(key: CacheKey, cache: Cache, args: CallArgs) {
+  private async _refreshCacheIfOutOfDataAsync(key: CacheKey, cache: Cache) {
     const currentCacheData = await this._cacheDataStorage.getAsync(key);
-    const cacheDataNeedsRefresh = !currentCacheData || (currentCacheData.createdAt + this._maxAgeInMS) < this._timeStampProvider.now();
+    const cacheDataNeedsRefresh = !currentCacheData || isCacheOutdated(currentCacheData, this._timeStampProvider.now());
 
     if (cacheDataNeedsRefresh) {
       await this._refreshCacheData(cache);
+    } else if (!cache.initialized && currentCacheData) {
+      this._setCacheData(cache, currentCacheData.data);
     }
   }
 
@@ -84,24 +89,29 @@ export class LocalCacheManager<T = any> implements CacheManager {
 
       await this._cacheDataStorage.storeAsync(cache.key, {
         data: data,
+        maxAgeMS: this._maxAgeInMS,
         createdAt: this._timeStampProvider.now(),
       });
 
-      cache.subject.next(data);
+      this._setCacheData(cache, data);
     } catch (e: any) {
       cache.subject.error(e);
     }
   }
 
-  private async _removeUnusedCachesAsync(except: CacheKey | undefined) {
+  private async _removeUnobservedCachesAsync(except: CacheKey | undefined) {
     const unusedCaches: CacheKey[] = Array.from(this._cacheStore.entries())
       .filter(([key, cache]: [CacheKey, Cache]) => key !== except && !cache.subject.observed)
-      .map(([key, cache]: [CacheKey, Cache]) => key);
+      .map(([key]: [CacheKey, Cache]) => key);
 
     if (unusedCaches.length) {
       unusedCaches.forEach(_ => this._cacheStore.delete(_));
-
-      await this._cacheDataStorage.removeAsync(unusedCaches);
     }
+  }
+
+  private _setCacheData(cache: Cache, data: any) {
+    cache.subject.next(data);
+
+    cache.initialized = true;
   }
 }

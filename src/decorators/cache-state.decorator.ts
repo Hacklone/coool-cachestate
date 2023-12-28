@@ -19,9 +19,9 @@ export function CacheState(config?: CacheStateConfig) {
 
     const maxAgeInMs = config?.maxAgeMS ?? 60000;
 
-    const cacheDataStorage = config?.cacheDataStorage ?? new LocalCacheDataStorage();
-    const dateProvider = config?.timeStampProvider ?? new LocalTimeStampProvider();
-    const cacheManager = new LocalCacheManager(cacheDataStorage, originalFunction, maxAgeInMs, dateProvider);
+    const timestampProvider = config?.timeStampProvider ?? new LocalTimeStampProvider();
+    const cacheDataStorage = config?.cacheDataStorage ?? new LocalCacheDataStorage(timestampProvider);
+    const cacheManager = new LocalCacheManager(cacheDataStorage, originalFunction, maxAgeInMs, timestampProvider);
 
     if (config?.updatedObservable) {
       config.updatedObservable
