@@ -4,6 +4,7 @@ import { LocalTimeStampProvider } from '../lib/local-time-stamp.provider';
 import { CacheStateConfig } from '../interface/cache-state-config.interface';
 import { CacheKey, CallArgs } from '../interface/cache-key.interface';
 import { Observable } from 'rxjs';
+import { GlobalCacheStateConfig } from '../lib/global-config';
 
 export function CacheState(config?: CacheStateConfig) {
   return function(
@@ -17,10 +18,10 @@ export function CacheState(config?: CacheStateConfig) {
       throw new Error('Use @CacheState() decorator on functions!');
     }
 
-    const maxAgeInMs = config?.maxAgeMS ?? 60000;
+    const maxAgeInMs = config?.maxAgeMS ?? GlobalCacheStateConfig?.maxAgeMS ?? 60000;
 
-    const timestampProvider = config?.timeStampProvider ?? new LocalTimeStampProvider();
-    const cacheDataStorage = config?.cacheDataStorage ?? new LocalCacheDataStorage(timestampProvider);
+    const timestampProvider = config?.timestampProvider ?? GlobalCacheStateConfig?.timestampProvider ?? new LocalTimeStampProvider();
+    const cacheDataStorage = config?.cacheDataStorage ?? GlobalCacheStateConfig?.cacheDataStorage ?? new LocalCacheDataStorage(timestampProvider);
     const cacheManager = new LocalCacheManager(cacheDataStorage, originalFunction, maxAgeInMs, timestampProvider);
 
     if (config?.updatedObservable) {

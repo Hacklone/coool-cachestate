@@ -2,7 +2,7 @@ import { firstValueFrom, Observable, ReplaySubject, Subject, throttleTime } from
 import { CacheManager } from '../interface/cache-manager.interface';
 import { CacheKey, CallArgs, CallContext } from '../interface/cache-key.interface';
 import { CacheDataStorage, isCacheOutdated } from '../interface/cache-storage.interface';
-import { TimeStampProvider } from '../interface/timestamp.interface';
+import { TimestampProvider } from '../interface/timestamp.interface';
 
 interface Cache<T = any> {
   readonly key: CacheKey;
@@ -25,7 +25,7 @@ export class LocalCacheManager<T = any> implements CacheManager {
     private _cacheDataStorage: CacheDataStorage,
     private _dataProvider: (args: CallArgs) => Observable<T>,
     private _maxAgeInMS: number,
-    private _timeStampProvider: TimeStampProvider,
+    private _timeStampProvider: TimestampProvider,
   ) {
   }
 

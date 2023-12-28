@@ -1,7 +1,7 @@
 import { CacheKeyGenerator, CacheKeyPrefixGenerator, CacheKeySuffixGenerator } from './cache-key.interface';
 import { CacheDataStorage } from './cache-storage.interface';
 import { UpdatedObservable } from './update-notifier.interface';
-import { TimeStampProvider } from './timestamp.interface';
+import { TimestampProvider } from './timestamp.interface';
 
 export interface CacheStateConfig {
   cacheKey?: {
@@ -45,5 +45,5 @@ export interface CacheStateConfig {
   /**
    * @description provides current timestamp, useful for testing
    */
-  timeStampProvider?: TimeStampProvider;
+  timestampProvider?: TimestampProvider;
 }

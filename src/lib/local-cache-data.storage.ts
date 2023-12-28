@@ -1,12 +1,12 @@
 import { CacheData, CacheDataStorage, isCacheOutdated } from '../interface/cache-storage.interface';
 import { CacheKey } from '../interface/cache-key.interface';
-import { TimeStampProvider } from '../interface/timestamp.interface';
+import { TimestampProvider } from '../interface/timestamp.interface';
 
 export class LocalCacheDataStorage implements CacheDataStorage {
   private _cacheStore = new Map<CacheKey, CacheData>();
 
   constructor(
-    private _timestampProvider: TimeStampProvider,
+    private _timestampProvider: TimestampProvider,
   ) {
   }
 
