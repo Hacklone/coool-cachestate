@@ -4,7 +4,8 @@ A simple-to-use, minimal boilerplate flexible cached state.
 
 ## Features
 ✅ Caching <br>
-✅ Built-in State Management <br>
+✅ State Management <br>
+✅ Updates for cache consumers <br>
 ✅ Works with any framework <br>
 ✅ Local Storage Support <br>
 ✅ Custom Storage Asynchronous Support <br>
@@ -22,7 +23,7 @@ $ npm i --save @coool/cachestate
 
 ### Add CacheState to a function
 ```typescript
-import { CacheStateUpdater } from '@coool/cachestate';
+import { CacheState } from '@coool/cachestate';
 
 @CacheState()
 function getItem$(itemId: ItemId): Observable<Item> {
@@ -83,7 +84,6 @@ function updateItem() {
 ```
 
 ### Global Configuration
-
 You can set configurations globally across all CacheStates.
 Local configuration will take precedence over global configuration.
 
@@ -91,6 +91,20 @@ Local configuration will take precedence over global configuration.
 import { GlobalCacheStateConfig } from '@coool/cachestate';
 
 GlobalCacheStateConfig.maxAgeMS = 60000;
+```
+
+### Invalidate all cache globally
+```typescript
+import { invalidateAllCache } from '@coool/cachestate';
+
+invalidateAllCache();
+```
+
+### Invalidate and update all cache globally
+```typescript
+import { invalidateAndUpdateAllCache } from '@coool/cachestate';
+
+invalidateAndUpdateAllCache();
 ```
 
 ## API

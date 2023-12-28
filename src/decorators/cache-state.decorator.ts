@@ -3,8 +3,9 @@ import { LocalCacheManager } from '../lib/local-cache.manager';
 import { LocalTimeStampProvider } from '../lib/local-time-stamp.provider';
 import { CacheStateConfig } from '../interface/cache-state-config.interface';
 import { CacheKey, CallArgs } from '../interface/cache-key.interface';
-import { Observable, Subject, takeUntil } from 'rxjs';
+import { merge, Observable, Subject, takeUntil } from 'rxjs';
 import { GlobalCacheStateConfig } from '../lib/global-config';
+import { invalidateAllCacheSubject, invalidateAndUpdateAllCacheSubject } from '../lib/global-functions';
 
 export function CacheState(config?: CacheStateConfig) {
   return function(
@@ -26,27 +27,46 @@ export function CacheState(config?: CacheStateConfig) {
     const cacheDataStorage = config?.cacheDataStorage ?? GlobalCacheStateConfig?.cacheDataStorage ?? new LocalCacheDataStorage(timestampProvider);
     const cacheManager = new LocalCacheManager(cacheDataStorage, originalFunction, maxAgeInMs, timestampProvider);
 
-    if (config?.updatedObservable) {
-      config.updatedObservable
-        .pipe(takeUntil(destroyed))
-        .subscribe(async (cacheKey: CacheKey | void) => {
-          await cacheManager.invalidateAndUpdateAsync(cacheKey || undefined);
-        });
-    }
-
-    if (config?.invalidatedObservable) {
-      config.invalidatedObservable
-        .pipe(takeUntil(destroyed))
-        .subscribe(async (cacheKey: CacheKey | void) => {
-          await cacheManager.invalidateAsync(cacheKey);
-        });
-    }
+    _subscribeToInvalidate();
+    _subscribeToInvalidateAndUpdate();
 
     descriptor.value = function(...args: CallArgs) {
       const cacheKey = _generateCacheKey(config, target, propertyKey, descriptor, args);
 
       return cacheManager.getCache$(cacheKey, args, this);
     };
+
+    function _subscribeToInvalidate() {
+      const updateObservables: Observable<CacheKey | void>[] = [
+        invalidateAllCacheSubject,
+      ];
+
+      if (config?.invalidatedObservable) {
+        updateObservables.push(config.invalidatedObservable);
+      }
+
+      merge(...updateObservables)
+        .pipe(takeUntil(destroyed))
+        .subscribe(async (cacheKey: CacheKey | void) => {
+          await cacheManager.invalidateAsync(cacheKey);
+        });
+    }
+
+    function _subscribeToInvalidateAndUpdate() {
+      const updateObservables: Observable<CacheKey | void>[] = [
+        invalidateAndUpdateAllCacheSubject,
+      ];
+
+      if (config?.updatedObservable) {
+        updateObservables.push(config.updatedObservable);
+      }
+
+      merge(...updateObservables)
+        .pipe(takeUntil(destroyed))
+        .subscribe(async (cacheKey: CacheKey | void) => {
+          await cacheManager.invalidateAndUpdateAsync(cacheKey || undefined);
+        });
+    }
   };
 
   function _generateCacheKey(

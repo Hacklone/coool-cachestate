@@ -14,3 +14,4 @@ export * from './decorators/cache-state-updater.decorator';
 export * from './decorators/cache-state-invalidator.decorator';
 
 export { GlobalCacheStateConfig } from './lib/global-config';
+export { invalidateAllCache, invalidateAndUpdateAllCache } from './lib/global-functions';
