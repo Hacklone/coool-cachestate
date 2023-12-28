@@ -3,7 +3,7 @@ import { LocalCacheManager } from '../lib/local-cache.manager';
 import { LocalTimeStampProvider } from '../lib/local-time-stamp.provider';
 import { CacheStateConfig } from '../interface/cache-state-config.interface';
 import { CacheKey, CallArgs } from '../interface/cache-key.interface';
-import { Observable } from 'rxjs';
+import { Observable, Subject, takeUntil } from 'rxjs';
 import { GlobalCacheStateConfig } from '../lib/global-config';
 
 export function CacheState(config?: CacheStateConfig) {
@@ -18,6 +18,8 @@ export function CacheState(config?: CacheStateConfig) {
       throw new Error('Use @CacheState() decorator on functions!');
     }
 
+    const destroyed = new Subject<void>();
+
     const maxAgeInMs = config?.maxAgeMS ?? GlobalCacheStateConfig?.maxAgeMS ?? 60000;
 
     const timestampProvider = config?.timestampProvider ?? GlobalCacheStateConfig?.timestampProvider ?? new LocalTimeStampProvider();
@@ -26,8 +28,17 @@ export function CacheState(config?: CacheStateConfig) {
 
     if (config?.updatedObservable) {
       config.updatedObservable
+        .pipe(takeUntil(destroyed))
         .subscribe(async (cacheKey: CacheKey | void) => {
           await cacheManager.invalidateAndUpdateAsync(cacheKey || undefined);
+        });
+    }
+
+    if (config?.invalidatedObservable) {
+      config.invalidatedObservable
+        .pipe(takeUntil(destroyed))
+        .subscribe(async (cacheKey: CacheKey | void) => {
+          await cacheManager.invalidateAsync(cacheKey);
         });
     }
 

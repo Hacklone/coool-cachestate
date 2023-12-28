@@ -1,9 +1,22 @@
 # @coool/cachestate
 
-A simple to use aspect-oriented way to create caches that can act as a shared state between users.
+A simple-to-use, minimal boilerplate flexible cached state.
 
-## Setup
-> npm i --save @coool/cachestate
+## Features
+✅ Caching <br>
+✅ Built-in State Management <br>
+✅ Works with any framework <br>
+✅ Local Storage Support <br>
+✅ Custom Storage Asynchronous Support <br>
+✅ Handles Simultaneous Requests <br>
+✅ Automatic & Manual Cache Busting <br>
+✅ Aspect-Oriented (Decorators) <br>
+
+## Install
+
+```shell script
+$ npm i --save @coool/cachestate
+```
 
 ## Basic Usage
 
@@ -26,7 +39,7 @@ getItem$('1')
 ```
 
 ### Notify the CacheState that the value needs updating
-```typescript items.service.ts
+```typescript
 import { CacheState, CacheStateUpdater } from '@coool/cachestate';
 import { Subject } from 'rxjs';
 
@@ -47,7 +60,40 @@ function updateItem() {
 }
 ```
 
-## Configuration
+## Use-cases
+
+### Invalidate cache without requesting update
+```typescript
+import { CacheState, CacheStateInvalidator } from '@coool/cachestate';
+import { Subject } from 'rxjs';
+
+const cacheInvalidatedNotifier = new Subject<void>();
+
+@CacheState({
+  invalidatedNotifier: cacheInvalidatedNotifier,
+})
+function getItem$(itemId: ItemId): Observable<Item> {}
+
+@CacheStateInvalidator({
+  invalidatedNotifier: cacheInvalidatedNotifier,
+})
+function updateItem() {
+  // This will invalidate the cache and call the getItem$ function again then update cache consumers with the latest value 
+}
+```
+
+### Global Configuration
+
+You can set configurations globally across all CacheStates.
+Local configuration will take precedence over global configuration.
+
+```typescript
+import { GlobalCacheStateConfig } from '@coool/cachestate';
+
+GlobalCacheStateConfig.maxAgeMS = 60000;
+```
+
+## API
 
 ### CacheState configuration
 | Property                 | Description                                                                                                              | Default                                                                                                               | Required |
@@ -66,24 +112,19 @@ function updateItem() {
 | updatedNotifier   | When emits the cache is invalidated and updated. If CacheKey is passed then only that cache otherwise all related cache. | undefined | true     |
 | cacheKeyGenerator | Generates the cache key for the updated notifier                                                                         | undefined | false    |
 
-## Global Configuration
+### CacheStateInvalidator configuration
+| Property            | Description                                                                                                    | Default   | Required |
+|---------------------|----------------------------------------------------------------------------------------------------------------|-----------|----------|
+| invalidatedNotifier | When emits the cache is invalidated. If CacheKey is passed then only that cache otherwise all related cache.   | undefined | true     |
+| cacheKeyGenerator   | Generates the cache key for the updated notifier                                                               | undefined | false    |
 
-You can set configurations globally across all CacheStates.
-Local configuration will take precedence over global configuration.
-
-```typescript
-import { GlobalCacheStateConfig } from '@coool/cachestate';
-
-GlobalCacheStateConfig.maxAgeMS = 60000;
-```
-
+### Global configuration
 | Property                 | Description                                                                                                              | Default                                                                                                               | Required |
 |--------------------------|--------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|----------|
 | cacheDataStorage         | A storage where the cache data is stored                                                                                 | Store cached values locally                                                                                           | false    |
 | maxAgeMS                 | Max age of cache in milliseconds                                                                                         | 60000 (1 minute)                                                                                                      | false    |
 | timestampProvider        | Provides current timestamp, useful for testing                                                                           |                                                                                                                       | false    |
 
-
 ## Inspiration
-This project is heavily inspired by [ts-cacheable](https://github.com/angelnikolov/ts-cacheable)
+This project is inspired by [ts-cacheable](https://github.com/angelnikolov/ts-cacheable)
 

@@ -45,6 +45,10 @@ export class LocalCacheManager<T = any> implements CacheManager {
 
     const allToInvalidateAndUpdate: CacheKey[] = cacheKey ? [cacheKey] : Array.from(this._cacheStore.keys());
 
+    if (!allToInvalidateAndUpdate.length) {
+      return;
+    }
+
     await this._cacheDataStorage.removeAsync(allToInvalidateAndUpdate);
 
     allToInvalidateAndUpdate.forEach(_ => {
@@ -54,6 +58,18 @@ export class LocalCacheManager<T = any> implements CacheManager {
         this._requestCacheDataRefresh(cache);
       }
     });
+  }
+
+  public async invalidateAsync(cacheKey: CacheKey | void) {
+    await this._removeUnobservedCachesAsync(undefined);
+
+    const allToInvalidate: CacheKey[] = cacheKey ? [cacheKey] : Array.from(this._cacheStore.keys());
+
+    if (!allToInvalidate.length) {
+      return;
+    }
+
+    await this._cacheDataStorage.removeAsync(allToInvalidate);
   }
 
   private _getAndEnsureCache(key: CacheKey, args: CallArgs, context: CallContext): Cache {
