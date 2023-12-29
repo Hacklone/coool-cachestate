@@ -3,6 +3,7 @@
 A simple-to-use, minimal boilerplate flexible cached state.
 
 ## Features
+
 ✅ Caching <br>
 ✅ State Management <br>
 ✅ Updates for cache consumers <br>
@@ -12,6 +13,7 @@ A simple-to-use, minimal boilerplate flexible cached state.
 ✅ Handles Simultaneous Requests <br>
 ✅ Automatic & Manual Cache Busting <br>
 ✅ Aspect-Oriented (Decorators) <br>
+✅ Out-of-the-box LocalStorage and SessionStorage cache data storage <br>
 
 ## Install
 
@@ -22,6 +24,7 @@ $ npm i --save @coool/cachestate
 ## Basic Usage
 
 ### Add CacheState to a function
+
 ```typescript
 import { CacheState } from '@coool/cachestate';
 
@@ -32,6 +35,7 @@ function getItem$(itemId: ItemId): Observable<Item> {
 ```
 
 ### Consume CacheState
+
 ```typescript
 getItem$('1')
   .subscribe(item => {
@@ -40,6 +44,7 @@ getItem$('1')
 ```
 
 ### Notify the CacheState that the value needs updating
+
 ```typescript
 import { CacheState, CacheStateUpdater } from '@coool/cachestate';
 import { Subject } from 'rxjs';
@@ -63,7 +68,19 @@ function updateItem() {
 
 ## Use-cases
 
+### Global Configuration
+
+You can set configurations globally across all CacheStates.
+Local configuration will take precedence over global configuration.
+
+```typescript
+import { GlobalCacheStateConfig } from '@coool/cachestate';
+
+GlobalCacheStateConfig.maxAgeMS = 5 * 60 * 1000;
+```
+
 ### Invalidate cache without requesting update
+
 ```typescript
 import { CacheState, CacheStateInvalidator } from '@coool/cachestate';
 import { Subject } from 'rxjs';
@@ -83,17 +100,8 @@ function updateItem() {
 }
 ```
 
-### Global Configuration
-You can set configurations globally across all CacheStates.
-Local configuration will take precedence over global configuration.
-
-```typescript
-import { GlobalCacheStateConfig } from '@coool/cachestate';
-
-GlobalCacheStateConfig.maxAgeMS = 60000;
-```
-
 ### Invalidate all cache globally
+
 ```typescript
 import { invalidateAllCache } from '@coool/cachestate';
 
@@ -101,15 +109,45 @@ invalidateAllCache();
 ```
 
 ### Invalidate and update all cache globally
+
 ```typescript
 import { invalidateAndUpdateAllCache } from '@coool/cachestate';
 
 invalidateAndUpdateAllCache();
 ```
 
+### LocalStorage data storage
+
+```typescript
+import { GlobalCacheStateConfig, BrowserStorageCacheDataStorage } from '@coool/cachestate';
+
+GlobalCacheStateConfig.cacheDataStorage = new BrowserStorageCacheDataStorage(window.localStorage);
+```
+
+### SessionStorage data storage
+
+```typescript
+import { GlobalCacheStateConfig, BrowserStorageCacheDataStorage } from '@coool/cachestate';
+
+GlobalCacheStateConfig.cacheDataStorage = new BrowserStorageCacheDataStorage(window.sessionStorage);
+```
+
+### Custom cache data storage
+
+```typescript
+import { CacheDataStorage, GlobalCacheStateConfig } from '@coool/cachestate';
+
+class MyCacheDataStorage implements CacheDataStorage {
+  // Implement CacheDataStorage interface to store, retrieve and delete cache data
+}
+
+GlobalCacheStateConfig.cacheDataStorage = new MyCacheDataStorage(window.localStorage);
+```
+
 ## API
 
 ### CacheState configuration
+
 | Property                 | Description                                                                                                              | Default                                                                                                               | Required |
 |--------------------------|--------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|----------|
 | cacheKey.generator       | Generates the cache key                                                                                                  | Combination of cache key prefix and suffix (combination of class, method name and a hash of the function's arguments) | false    |
@@ -121,18 +159,21 @@ invalidateAndUpdateAllCache();
 | timestampProvider        | Provides current timestamp, useful for testing                                                                           |                                                                                                                       | false    |
 
 ### CacheStateUpdater configuration
+
 | Property          | Description                                                                                                              | Default   | Required |
 |-------------------|--------------------------------------------------------------------------------------------------------------------------|-----------|----------|
 | updatedNotifier   | When emits the cache is invalidated and updated. If CacheKey is passed then only that cache otherwise all related cache. | undefined | true     |
 | cacheKeyGenerator | Generates the cache key for the updated notifier                                                                         | undefined | false    |
 
 ### CacheStateInvalidator configuration
+
 | Property            | Description                                                                                                    | Default   | Required |
 |---------------------|----------------------------------------------------------------------------------------------------------------|-----------|----------|
 | invalidatedNotifier | When emits the cache is invalidated. If CacheKey is passed then only that cache otherwise all related cache.   | undefined | true     |
 | cacheKeyGenerator   | Generates the cache key for the updated notifier                                                               | undefined | false    |
 
 ### Global configuration
+
 | Property                 | Description                                                                                                              | Default                                                                                                               | Required |
 |--------------------------|--------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|----------|
 | cacheDataStorage         | A storage where the cache data is stored                                                                                 | Store cached values locally                                                                                           | false    |
@@ -140,5 +181,6 @@ invalidateAndUpdateAllCache();
 | timestampProvider        | Provides current timestamp, useful for testing                                                                           |                                                                                                                       | false    |
 
 ## Inspiration
+
 This project is inspired by [ts-cacheable](https://github.com/angelnikolov/ts-cacheable)
 

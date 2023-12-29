@@ -1,4 +1,4 @@
-import { LocalCacheDataStorage } from '../lib/local-cache-data.storage';
+import { MemoryCacheDataStorage } from '../lib/memory-cache-data.storage';
 import { LocalCacheManager } from '../lib/local-cache.manager';
 import { LocalTimeStampProvider } from '../lib/local-time-stamp.provider';
 import { CacheStateConfig } from '../interface/cache-state-config.interface';
@@ -24,7 +24,7 @@ export function CacheState(config?: CacheStateConfig) {
     const maxAgeInMs = config?.maxAgeMS ?? GlobalCacheStateConfig?.maxAgeMS ?? 60000;
 
     const timestampProvider = config?.timestampProvider ?? GlobalCacheStateConfig?.timestampProvider ?? new LocalTimeStampProvider();
-    const cacheDataStorage = config?.cacheDataStorage ?? GlobalCacheStateConfig?.cacheDataStorage ?? new LocalCacheDataStorage(timestampProvider);
+    const cacheDataStorage = config?.cacheDataStorage ?? GlobalCacheStateConfig?.cacheDataStorage ?? new MemoryCacheDataStorage(timestampProvider);
     const cacheManager = new LocalCacheManager(cacheDataStorage, originalFunction, maxAgeInMs, timestampProvider);
 
     _subscribeToInvalidate();

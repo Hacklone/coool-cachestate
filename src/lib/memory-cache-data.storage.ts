@@ -2,7 +2,7 @@ import { CacheData, CacheDataStorage, isCacheOutdated } from '../interface/cache
 import { CacheKey } from '../interface/cache-key.interface';
 import { TimestampProvider } from '../interface/timestamp.interface';
 
-export class LocalCacheDataStorage implements CacheDataStorage {
+export class MemoryCacheDataStorage implements CacheDataStorage {
   private _cacheStore = new Map<CacheKey, CacheData>();
 
   constructor(
