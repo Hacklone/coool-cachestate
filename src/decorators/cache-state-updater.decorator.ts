@@ -1,5 +1,6 @@
 import { CacheStateUpdaterConfig } from '../interface/cache-state-updater-config.interface';
 import { CacheKey, CallArgs } from '../interface/cache-key.interface';
+import { isObservable, Observable, tap } from 'rxjs';
 
 export function CacheStateUpdater(config: CacheStateUpdaterConfig) {
   return function(
@@ -18,7 +19,20 @@ export function CacheStateUpdater(config: CacheStateUpdaterConfig) {
 
       const result = originalFunction.apply(this, args);
 
-      config.updatedNotifier.next(cacheKey);
+      if (isObservable(result)) {
+        return (result as Observable<any>)
+          .pipe(
+            tap(() => {
+              config.updatedNotifier.next(cacheKey);
+            }),
+          );
+      } else if (result instanceof Promise) {
+        return result.finally(() => {
+          config.updatedNotifier.next(cacheKey);
+        });
+      } else {
+        config.updatedNotifier.next(cacheKey);
+      }
 
       return result;
     };

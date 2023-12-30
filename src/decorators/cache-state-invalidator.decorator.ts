@@ -1,5 +1,6 @@
 import { CacheKey, CallArgs } from '../interface/cache-key.interface';
 import { CacheStateInvalidatorConfig } from '../interface/cache-state-invalidator-config.interface';
+import { isObservable, Observable, tap } from 'rxjs';
 
 export function CacheStateInvalidator(config: CacheStateInvalidatorConfig) {
   return function(
@@ -18,7 +19,20 @@ export function CacheStateInvalidator(config: CacheStateInvalidatorConfig) {
 
       const result = originalFunction.apply(this, args);
 
-      config.invalidatedNotifier.next(cacheKey);
+      if (isObservable(result)) {
+        return (result as Observable<any>)
+          .pipe(
+            tap(() => {
+              config.invalidatedNotifier.next(cacheKey);
+            }),
+          );
+      } else if (result instanceof Promise) {
+        return result.finally(() => {
+          config.invalidatedNotifier.next(cacheKey);
+        });
+      } else {
+        config.invalidatedNotifier.next(cacheKey);
+      }
 
       return result;
     };
