@@ -1,6 +1,7 @@
 import { CacheKey, CallArgs } from '../interface/cache-key.interface';
 import { CacheStateInvalidatorConfig } from '../interface/cache-state-invalidator-config.interface';
 import { isObservable, Observable, tap } from 'rxjs';
+import { GlobalNotifierManager } from '../lib/global-notifier.manager';
 
 export function CacheStateInvalidator(config: CacheStateInvalidatorConfig) {
   return function(
@@ -23,18 +24,28 @@ export function CacheStateInvalidator(config: CacheStateInvalidatorConfig) {
         return (result as Observable<any>)
           .pipe(
             tap(() => {
-              config.invalidatedNotifier.next(cacheKey);
+              notifyInvalidated(cacheKey);
             }),
           );
       } else if (result instanceof Promise) {
         return result.finally(() => {
-          config.invalidatedNotifier.next(cacheKey);
+          notifyInvalidated(cacheKey);
         });
       } else {
-        config.invalidatedNotifier.next(cacheKey);
+        notifyInvalidated(cacheKey);
       }
 
       return result;
     };
+
+    function notifyInvalidated(cacheKey: CacheKey | undefined) {
+      if (config.invalidatedNotifier) {
+        config.invalidatedNotifier.next(cacheKey);
+      } else if (config.invalidatedNotifierKey) {
+        GlobalNotifierManager.notify(config.invalidatedNotifierKey, cacheKey);
+      } else {
+        throw new Error('Missing invalidatedNotifier');
+      }
+    }
   };
 }

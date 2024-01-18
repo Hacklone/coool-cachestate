@@ -6,6 +6,7 @@ import { CacheKey, CallArgs } from '../interface/cache-key.interface';
 import { merge, Observable, Subject, takeUntil } from 'rxjs';
 import { GlobalCacheStateConfig } from '../lib/global-config';
 import { invalidateAllCacheSubject, invalidateAndUpdateAllCacheSubject } from '../lib/global-functions';
+import { GlobalNotifierManager } from '../lib/global-notifier.manager';
 
 export function CacheState(config?: CacheStateConfig) {
   return function(
@@ -45,6 +46,10 @@ export function CacheState(config?: CacheStateConfig) {
         updateObservables.push(config.invalidatedObservable);
       }
 
+      if (config?.invalidatedObservableKey) {
+        updateObservables.push(GlobalNotifierManager.getNotifierObservable(config.invalidatedObservableKey));
+      }
+
       merge(...updateObservables)
         .pipe(takeUntil(destroyed))
         .subscribe(async (cacheKey: CacheKey | void) => {
@@ -59,6 +64,10 @@ export function CacheState(config?: CacheStateConfig) {
 
       if (config?.updatedObservable) {
         updateObservables.push(config.updatedObservable);
+      }
+
+      if (config?.updatedObservableKey) {
+        updateObservables.push(GlobalNotifierManager.getNotifierObservable(config.updatedObservableKey));
       }
 
       merge(...updateObservables)

@@ -1,8 +1,8 @@
 import { CacheKeyGenerator, CacheKeyPrefixGenerator, CacheKeySuffixGenerator } from './cache-key.interface';
 import { CacheDataStorage } from './cache-storage.interface';
-import { UpdatedObservable } from './update-notifier.interface';
+import { UpdatedNotifierKey, UpdatedObservable } from './update-notifier.interface';
 import { TimestampProvider } from './timestamp.interface';
-import { InvalidatedObservable } from './invalidate-notifier.interface';
+import { InvalidatedNotifierKey, InvalidatedObservable } from './invalidate-notifier.interface';
 
 export interface CacheStateConfig {
   cacheKey?: {
@@ -44,10 +44,22 @@ export interface CacheStateConfig {
   updatedObservable?: UpdatedObservable;
 
   /**
+   * @description When emits the cache is invalidated and updated. If CacheKey is passed then only that cache otherwise all related cache.
+   * @default undefined
+   */
+  updatedObservableKey?: UpdatedNotifierKey;
+
+  /**
    * @description When emits the cache is invalidated. If CacheKey is passed then only that cache otherwise all related cache.
    * @default undefined
    */
   invalidatedObservable?: InvalidatedObservable;
+
+  /**
+   * @description When emits the cache is invalidated. If CacheKey is passed then only that cache otherwise all related cache.
+   * @default undefined
+   */
+  invalidatedObservableKey?: InvalidatedNotifierKey;
 
   /**
    * @description provides current timestamp, useful for testing

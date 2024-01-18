@@ -1,6 +1,7 @@
 import { CacheStateUpdaterConfig } from '../interface/cache-state-updater-config.interface';
 import { CacheKey, CallArgs } from '../interface/cache-key.interface';
 import { isObservable, Observable, tap } from 'rxjs';
+import { GlobalNotifierManager } from '../lib/global-notifier.manager';
 
 export function CacheStateUpdater(config: CacheStateUpdaterConfig) {
   return function(
@@ -23,18 +24,28 @@ export function CacheStateUpdater(config: CacheStateUpdaterConfig) {
         return (result as Observable<any>)
           .pipe(
             tap(() => {
-              config.updatedNotifier.next(cacheKey);
+              notifyUpdated(cacheKey);
             }),
           );
       } else if (result instanceof Promise) {
         return result.finally(() => {
-          config.updatedNotifier.next(cacheKey);
+          notifyUpdated(cacheKey);
         });
       } else {
-        config.updatedNotifier.next(cacheKey);
+        notifyUpdated(cacheKey);
       }
 
       return result;
+
+      function notifyUpdated(cacheKey: CacheKey | undefined) {
+        if (config.updatedNotifier) {
+          config.updatedNotifier.next(cacheKey);
+        } else if (config.updatedNotifierKey) {
+          GlobalNotifierManager.notify(config.updatedNotifierKey, cacheKey);
+        } else {
+          throw new Error('Missing updatedNotifier');
+        }
+      }
     };
   };
 }

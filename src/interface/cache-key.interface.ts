@@ -6,3 +6,4 @@ export type CacheKeyPrefixGenerator = (args: CallArgs, target: Object, propertyK
 export type CacheKeySuffixGenerator = (args: CallArgs, target: Object, propertyKey: string, descriptor: PropertyDescriptor) => string;
 
 export type CacheKey = string;
+export type NotifierKey = string;

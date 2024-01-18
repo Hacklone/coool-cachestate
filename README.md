@@ -47,19 +47,16 @@ getItem$('1')
 
 ```typescript
 import { CacheState, CacheStateUpdater } from '@coool/cachestate';
-import { Subject } from 'rxjs';
-
-const stateUpdatedNotifier = new Subject<void>();
 
 @CacheState({
-  updatedNotifier: stateUpdatedNotifier,
+  updatedNotifierKey: 'items-updated',
 })
 function getItem$(itemId: ItemId): Observable<Item> {
   // Get latest version of item from the server
 }
 
 @CacheStateUpdater({
-  updatedNotifier: stateUpdatedNotifier,
+  updatedNotifierKey: 'items-updated',
 })
 function updateItem() {
   // This will invalidate the cache and call the getItem$ function again then update cache consumers with the latest value 
@@ -90,7 +87,8 @@ const cacheInvalidatedNotifier = new Subject<void>();
 @CacheState({
   invalidatedNotifier: cacheInvalidatedNotifier,
 })
-function getItem$(itemId: ItemId): Observable<Item> {}
+function getItem$(itemId: ItemId): Observable<Item> {
+}
 
 @CacheStateInvalidator({
   invalidatedNotifier: cacheInvalidatedNotifier,
@@ -156,29 +154,34 @@ GlobalCacheStateConfig.cacheDataStorage = new MyCacheDataStorage(window.localSto
 | cacheDataStorage         | A storage where the cache data is stored                                                                                 | Store cached values locally                                                                                           | false    |
 | maxAgeMS                 | Max age of cache in milliseconds                                                                                         | 60000 (1 minute)                                                                                                      | false    |
 | updatedObservable        | When emits the cache is invalidated and updated. If CacheKey is passed then only that cache otherwise all related cache. | undefined                                                                                                             | false    |
+| updatedObservableKey     | When emits the cache is invalidated and updated. If CacheKey is passed then only that cache otherwise all related cache. | undefined                                                                                                             | false    |
+| invalidatedObservable    | When emits the cache is invalidated. If CacheKey is passed then only that cache otherwise all related cache.             | undefined                                                                                                             | false    |
+| invalidatedObservableKey | When emits the cache is invalidated. If CacheKey is passed then only that cache otherwise all related cache.             | undefined                                                                                                             | false    |
 | timestampProvider        | Provides current timestamp, useful for testing                                                                           |                                                                                                                       | false    |
 
 ### CacheStateUpdater configuration
 
-| Property          | Description                                                                                                              | Default   | Required |
-|-------------------|--------------------------------------------------------------------------------------------------------------------------|-----------|----------|
-| updatedNotifier   | When emits the cache is invalidated and updated. If CacheKey is passed then only that cache otherwise all related cache. | undefined | true     |
-| cacheKeyGenerator | Generates the cache key for the updated notifier                                                                         | undefined | false    |
+| Property           | Description                                                                                                              | Default   | Required                         |
+|--------------------|--------------------------------------------------------------------------------------------------------------------------|-----------|----------------------------------|
+| updatedNotifier    | When emits the cache is invalidated and updated. If CacheKey is passed then only that cache otherwise all related cache. | undefined | true (OR use updatedNotifierKey) |
+| updatedNotifierKey | Global key identifying updatedNotifier                                                                                   | undefined | true (OR use updatedNotifier)    |
+| cacheKeyGenerator  | Generates the cache key for the updated notifier                                                                         | undefined | false                            |
 
 ### CacheStateInvalidator configuration
 
-| Property            | Description                                                                                                    | Default   | Required |
-|---------------------|----------------------------------------------------------------------------------------------------------------|-----------|----------|
-| invalidatedNotifier | When emits the cache is invalidated. If CacheKey is passed then only that cache otherwise all related cache.   | undefined | true     |
-| cacheKeyGenerator   | Generates the cache key for the updated notifier                                                               | undefined | false    |
+| Property               | Description                                                                                                  | Default   | Required                             |
+|------------------------|--------------------------------------------------------------------------------------------------------------|-----------|--------------------------------------|
+| invalidatedNotifier    | When emits the cache is invalidated. If CacheKey is passed then only that cache otherwise all related cache. | undefined | true (OR use invalidatedNotifierKey) |
+| invalidatedNotifierKey | Global key identifying invalidatedNotifier.                                                                  | undefined | true (OR use invalidatedNotifier)    |
+| cacheKeyGenerator      | Generates the cache key for the updated notifier                                                             | undefined | false                                |
 
 ### Global configuration
 
-| Property                 | Description                                                                                                              | Default                                                                                                               | Required |
-|--------------------------|--------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|----------|
-| cacheDataStorage         | A storage where the cache data is stored                                                                                 | Store cached values locally                                                                                           | false    |
-| maxAgeMS                 | Max age of cache in milliseconds                                                                                         | 60000 (1 minute)                                                                                                      | false    |
-| timestampProvider        | Provides current timestamp, useful for testing                                                                           |                                                                                                                       | false    |
+| Property          | Description                                    | Default                     | Required |
+|-------------------|------------------------------------------------|-----------------------------|----------|
+| cacheDataStorage  | A storage where the cache data is stored       | Store cached values locally | false    |
+| maxAgeMS          | Max age of cache in milliseconds               | 60000 (1 minute)            | false    |
+| timestampProvider | Provides current timestamp, useful for testing |                             | false    |
 
 ## Inspiration
 
