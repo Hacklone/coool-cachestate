@@ -3,7 +3,7 @@ import { LocalCacheManager } from '../lib/local-cache.manager';
 import { LocalTimeStampProvider } from '../lib/local-time-stamp.provider';
 import { CacheStateConfig } from '../interface/cache-state-config.interface';
 import { CacheKey, CallArgs } from '../interface/cache-key.interface';
-import { merge, Observable, Subject, takeUntil } from 'rxjs';
+import { filter, merge, Observable, Subject, takeUntil } from 'rxjs';
 import { GlobalCacheStateConfig } from '../lib/global-config';
 import { invalidateAllCacheSubject, invalidateAndUpdateAllCacheSubject } from '../lib/global-functions';
 import { GlobalNotifierManager } from '../lib/global-notifier.manager';
@@ -38,43 +38,56 @@ export function CacheState(config?: CacheStateConfig) {
     };
 
     function _subscribeToInvalidate() {
-      const updateObservables: Observable<CacheKey | void>[] = [
+      const invalidatedObservables: Observable<CacheKey | void>[] = [
         invalidateAllCacheSubject,
       ];
 
       if (config?.invalidatedObservable) {
-        updateObservables.push(config.invalidatedObservable);
+        invalidatedObservables.push(config.invalidatedObservable);
       }
 
       if (config?.invalidatedObservableKey) {
-        updateObservables.push(GlobalNotifierManager.getNotifierObservable(config.invalidatedObservableKey));
+        invalidatedObservables.push(GlobalNotifierManager.getNotifierObservable(config.invalidatedObservableKey));
       }
 
-      merge(...updateObservables)
-        .pipe(takeUntil(destroyed))
-        .subscribe(async (cacheKey: CacheKey | void) => {
-          await cacheManager.invalidateAsync(cacheKey);
-        });
+      let mergedInvalidatedObservables = merge(...invalidatedObservables)
+        .pipe(takeUntil(destroyed));
+
+      if (config?.invalidateOnlySpecific) {
+        mergedInvalidatedObservables = mergedInvalidatedObservables
+          .pipe(filter(_ => !!_));
+      }
+
+      mergedInvalidatedObservables.subscribe(async (cacheKey: CacheKey | void) => {
+        await cacheManager.invalidateAsync(cacheKey);
+      });
     }
 
     function _subscribeToInvalidateAndUpdate() {
-      const updateObservables: Observable<CacheKey | void>[] = [
+      const updatedObservables: Observable<CacheKey | void>[] = [
         invalidateAndUpdateAllCacheSubject,
       ];
 
       if (config?.updatedObservable) {
-        updateObservables.push(config.updatedObservable);
+        updatedObservables.push(config.updatedObservable);
       }
 
       if (config?.updatedObservableKey) {
-        updateObservables.push(GlobalNotifierManager.getNotifierObservable(config.updatedObservableKey));
+        updatedObservables.push(GlobalNotifierManager.getNotifierObservable(config.updatedObservableKey));
       }
 
-      merge(...updateObservables)
-        .pipe(takeUntil(destroyed))
-        .subscribe(async (cacheKey: CacheKey | void) => {
-          await cacheManager.invalidateAndUpdateAsync(cacheKey || undefined);
-        });
+      let mergedUpdatedObservables = merge(...updatedObservables)
+        .pipe(takeUntil(destroyed));
+
+      if (config?.updateOnlySpecific) {
+        mergedUpdatedObservables = mergedUpdatedObservables.pipe(
+          filter(_ => !!_),
+        );
+      }
+
+      mergedUpdatedObservables.subscribe(async (cacheKey: CacheKey | void) => {
+        await cacheManager.invalidateAndUpdateAsync(cacheKey || undefined);
+      });
     }
   };
 

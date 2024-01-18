@@ -50,6 +50,12 @@ export interface CacheStateConfig {
   updatedObservableKey?: UpdatedNotifierKey;
 
   /**
+   * @description When updated notifier fires only update if specific cache key is defined.
+   * @default false
+   */
+  updateOnlySpecific?: boolean;
+
+  /**
    * @description When emits the cache is invalidated. If CacheKey is passed then only that cache otherwise all related cache.
    * @default undefined
    */
@@ -60,6 +66,12 @@ export interface CacheStateConfig {
    * @default undefined
    */
   invalidatedObservableKey?: InvalidatedNotifierKey;
+
+  /**
+   * @description When invalidated notifier fires only update if specific cache key is defined.
+   * @default false
+   */
+  invalidateOnlySpecific?: boolean;
 
   /**
    * @description provides current timestamp, useful for testing
