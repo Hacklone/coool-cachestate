@@ -139,7 +139,7 @@ class MyCacheDataStorage implements CacheDataStorage {
   // Implement CacheDataStorage interface to store, retrieve and delete cache data
 }
 
-GlobalCacheStateConfig.cacheDataStorage = new MyCacheDataStorage(window.localStorage);
+GlobalCacheStateConfig.cacheDataStorage = new MyCacheDataStorage();
 ```
 
 ## API
