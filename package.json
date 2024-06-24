@@ -1,6 +1,6 @@
 {
   "name": "@coool/cachestate",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "scripts": {
     "build": "npm run clean && npm run build:compile && npm run build:copyFiles",
     "clean": "rm -rf dist",
