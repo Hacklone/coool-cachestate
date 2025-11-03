@@ -3,6 +3,15 @@ import { CacheKey, CallArgs } from '../interface/cache-key.interface';
 import { isObservable, Observable, tap } from 'rxjs';
 import { GlobalNotifierManager } from '../lib/global-notifier.manager';
 
+/**
+ * A decorator function that wraps a method to update a cache state when the method is called.
+ * It supports methods returning Observables, Promises, or synchronous results.
+ *
+ * @param config Configuration object for CacheStateUpdater, which includes the cacheKeyGenerator
+ *               for generating cache keys, updatedNotifier for emitting updates, or updatedNotifierKey
+ *               for global notifier key reference.
+ * @return A function that modifies the method's behavior to notify cache updates based on the specified configuration.
+ */
 export function CacheStateUpdater(config: CacheStateUpdaterConfig) {
   return function(
     target: Object,

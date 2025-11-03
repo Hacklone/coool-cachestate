@@ -4,6 +4,9 @@ import { UpdatedNotifierKey, UpdatedObservable } from './update-notifier.interfa
 import { TimestampProvider } from './timestamp.interface';
 import { InvalidatedNotifierKey, InvalidatedObservable } from './invalidate-notifier.interface';
 
+/**
+ * Configuration for cache state management and behavior.
+ */
 export interface CacheStateConfig {
   cacheKey?: {
     /**

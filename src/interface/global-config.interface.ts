@@ -1,6 +1,9 @@
 import { CacheDataStorage } from './cache-storage.interface';
 import { TimestampProvider } from './timestamp.interface';
 
+/**
+ * Represents the configuration options for global caching behavior.
+ */
 export interface GlobalConfig {
   /**
    * @description a storage where the cache data is stored

@@ -8,6 +8,15 @@ import { GlobalCacheStateConfig } from '../lib/global-config';
 import { invalidateAllCacheSubject, invalidateAndUpdateAllCacheSubject } from '../lib/global-functions';
 import { GlobalNotifierManager } from '../lib/global-notifier.manager';
 
+/**
+ * A decorator that manages caching functionality for a function by wrapping it
+ * to handle cache storage, invalidation, and updates. The decorator allows for
+ * configuration of cache-related behavior and integrates with global cache state
+ * configurations.
+ *
+ * @param {CacheStateConfig} [config] - The configuration object to customize caching behavior, including cache key generation, max age, storage, and invalidation settings.
+ * @return {Function} Returns a function that wraps the original function and manages caching behavior according to the given configurations.
+ */
 export function CacheState(config?: CacheStateConfig) {
   return function(
     target: Object,

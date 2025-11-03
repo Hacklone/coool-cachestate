@@ -3,6 +3,16 @@ import { CacheStateInvalidatorConfig } from '../interface/cache-state-invalidato
 import { isObservable, Observable, tap } from 'rxjs';
 import { GlobalNotifierManager } from '../lib/global-notifier.manager';
 
+/**
+ * Decorator function to invalidate cache state upon execution of the decorated method.
+ * It allows hooks to notify cache invalidation based on the provided configuration.
+ * This function modifies the behavior of the decorated target method.
+ *
+ * @param {CacheStateInvalidatorConfig} config The configuration object for cache invalidation.
+ *                                              It includes properties such as `cacheKeyGenerator`,
+ *                                              `invalidatedNotifier`, and `invalidatedNotifierKey`.
+ * @return {Function} A decorator function that modifies the descriptor of the provided method.
+ */
 export function CacheStateInvalidator(config: CacheStateInvalidatorConfig) {
   return function(
     target: Object,

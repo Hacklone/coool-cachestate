@@ -15,7 +15,7 @@
     "moduleResolution": "node",
     "sourceMap": true,
     "outDir": "./dist",
-    "removeComments": true,
+    "removeComments": false,
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
